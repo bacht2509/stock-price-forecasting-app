@@ -102,6 +102,7 @@ def main():
         
             plt.ioff()
             fig, ax = mc.plot_graph(trend_mc)
+            fig.set_size_inches(16, 9)
             st.pyplot()
 
         
