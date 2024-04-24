@@ -102,8 +102,6 @@ def main():
         
             plt.ioff()
             fig, ax = mc.plot_graph(trend_mc)
-            fig.set_figwidth(4)
-            fig.set_figheight(1.8)
             st.pyplot()
 
         
