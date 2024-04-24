@@ -7,6 +7,4 @@ seaborn
 plotly
 PyDTMC
 networkx
-scikit-learn
-statsmodels
-pmdarima
+sklearn
