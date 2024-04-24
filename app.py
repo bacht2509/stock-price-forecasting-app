@@ -17,6 +17,7 @@ from statsmodels.tsa.stattools import adfuller
 from statsmodels.tsa.seasonal import seasonal_decompose
 from pmdarima import auto_arima
 import pydot
+import graphviz
 
 def main():
     #Page config and title
