@@ -122,7 +122,7 @@ def main():
             with col1:
                 st.dataframe(compare, hide_index=True, use_container_width=True)
             with col2:
-                st.metric(":orange[Accuracy]", f"{accuracy_score(compare["Trend_state"], compare["Prediction"])*100:.2f}%")
+                st.metric(":orange[Accuracy]", f"{accuracy_score(compare['Trend_stat'], compare['Prediction'])*100:.2f}%")
             
             if trend_mc.is_ergodic:
                 st.markdown("Because the chain is ***irreducible*** and ***aperiodic*** so after some steps, the prediction converges to the invariant distibution (equilibrium distribution)")
