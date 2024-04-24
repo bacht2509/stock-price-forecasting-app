@@ -10,3 +10,4 @@ networkx
 scikit-learn
 statsmodels
 pmdarima
+pydot

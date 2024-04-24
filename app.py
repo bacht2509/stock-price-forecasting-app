@@ -16,6 +16,7 @@ from statsmodels.tsa.api import Holt, SimpleExpSmoothing, ExponentialSmoothing
 from statsmodels.tsa.stattools import adfuller 
 from statsmodels.tsa.seasonal import seasonal_decompose
 from pmdarima import auto_arima
+import pydot
 
 def main():
     #Page config and title
