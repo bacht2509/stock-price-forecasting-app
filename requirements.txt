@@ -8,3 +8,4 @@ plotly
 PyDTMC
 networkx
 scikit-learn
+statsmodels
