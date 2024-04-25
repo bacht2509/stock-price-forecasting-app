@@ -69,6 +69,7 @@ def main():
                                     low=data_view['Low'],
                                     close=data_view['Close'])
         candlestick_fig = go.Figure(data=candlestick)
+        candlestick_fig.update_layout(xaxis_rangeslider_visible=False)
         st.plotly_chart(candlestick_fig, use_container_width=True)    
 
         # Volume plot
