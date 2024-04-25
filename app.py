@@ -272,12 +272,12 @@ def main():
             st.subheader("Test for stationarity")
             test_stationarity(arima_data2["Close"])
 
-            st.subheader("Trend and Seasonality")
-            decomposition = seasonal_decompose(arima_data2["Close"], period=30)
-            fig = plt.figure()
-            fig = decomposition.plot()
-            fig.set_size_inches(16, 9)
-            st.pyplot(fig, use_container_width=True)
+            #st.subheader("Trend and Seasonality")
+            #decomposition = seasonal_decompose(arima_data2["Close"], period=30)
+            #fig = plt.figure()
+            #fig = decomposition.plot()
+            #fig.set_size_inches(16, 9)
+            #st.pyplot(fig, use_container_width=True)
 
             arima_train = arima_data.iloc[:int(arima_data.shape[0]*0.8)]
             arima_test = arima_data.iloc[int(arima_data.shape[0]*0.8):]
