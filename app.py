@@ -3,6 +3,7 @@ import numpy as np
 import pandas as pd
 import yfinance as yf
 import matplotlib.pyplot as plt
+import seaborn as sns
 import plotly.express as px
 import plotly.graph_objects as go
 from datetime import date
@@ -18,6 +19,8 @@ from statsmodels.tsa.seasonal import seasonal_decompose
 from pmdarima import auto_arima
 import pydot
 import graphviz
+from prophet import Prophet
+from prophet.plot import plot_plotly
 
 def main():
     #Page config and title
@@ -33,7 +36,7 @@ def main():
                    "Petroleum": ["ASP.VN", "CNG.VN"]}
     group = st.sidebar.selectbox("Industry Group", group_list)
     ticker = st.sidebar.selectbox("Stock Ticker", ticker_list[group])
-    model_list = ["Markov chain", "ARIMA"]
+    model_list = ["Markov Chain", "ARIMA", "Facebook Prophet", "Markov Regime-Switching"]
     model_choice = st.sidebar.selectbox("Model to forecast", model_list)
 
     start_date = date(2022, 1, 1)
@@ -41,12 +44,28 @@ def main():
 
     data = get_data(ticker, start_date, end_date)
 
-    tab1, tab2 = st.tabs(["Data Info", "Forecast"])
+    tab1, tab2 = st.tabs(["Data", "Forecast"])
 
     with tab1: 
         #View data frame
-        st.header("Stock historical data")
+        st.header("Stock Data")
+
+        price_difference, percentage_difference = calculate_price_difference(data)
+        latest_close_price = data.iloc[-1]["Close"]
+        max_52_week_high = data["High"].tail(252).max() if len(data) >= 252 else data["High"].max()
+        min_52_week_low = data["Low"].tail(252).min() if len(data) >= 252 else data["Low"].min()
+        col1, col2, col3, col4 = st.columns(4)
+        with col1:
+            st.metric("Close Price", f"{latest_close_price:.2f}")
+        with col2:
+            st.metric("Price Difference (YoY)", f"{price_difference:.2f}", f"{percentage_difference:+.2f}%")
+        with col3:
+            st.metric("52-Week High", f"{max_52_week_high:.2f}")
+        with col4:
+            st.metric("52-Week Low", f"{min_52_week_low:.2f}")
+
         st.dataframe(data[::-1], hide_index=True, use_container_width=True)
+        
 
         #Plot the data
         st.header("Data Visualization :chart:")
@@ -81,10 +100,9 @@ def main():
     with tab2:
         #Forecasting
         data1 = data[["Date", "Close"]]
-        st.header("Stock closing price forecast")
 
         #Markov chain
-        if model_choice == "Markov chain":
+        if model_choice == "Markov Chain":
             # Markov chain 1: Trend states
             mc_data = data1.copy(deep=True)
             mc_data["Close_diff"] = mc_data["Close"].diff()
@@ -99,7 +117,8 @@ def main():
                                             mc_train["Trend_state"].tolist()[1:])
         
         
-            st.subheader("Explore stock price properties with Markov chain")
+            st.subheader("Markov Chain model ")
+            st.subheader(r"$\textsf{\small Stock price properties}$")
             st.markdown(f"Consider 3 states of daily stock closing price: ***Up, Flat and Down***. \
                 Using the data **from {mc_train.iloc[0,0].date()} to {mc_train.iloc[-1,0].date()}**, we form a Markov chain as follows: ")
         
@@ -127,12 +146,6 @@ def main():
                 st.metric(":orange[Accuracy]", f"{accuracy_score(compare['Trend_state'], compare['Prediction'])*100:.2f}%")
             
             if trend_mc.is_ergodic:
-                st.markdown("Because the chain is ***irreducible*** and ***aperiodic*** so after some steps, the prediction converges to the invariant distibution (equilibrium distribution)")
-                st.dataframe(pd.DataFrame(trend_mc.pi, columns=["up_prob", "flat_prob", "down_prob"]), hide_index=True)
-                st.markdown("""We can interpret this distribution as the **long-run proportions of time** 
-                            spent in each state. So we can use this to forecast time proportion of states
-                            in the future.""")
-
                 st.subheader(r"$\textsf{\footnotesize Long-run proportion forecast}$")
                 col1, col2 = st.columns(2)
                 with col1:
@@ -177,7 +190,7 @@ def main():
             
             
             # Markov chain 2: Daily return states
-            st.subheader("Predict stock closing price with Markov chain")
+            st.subheader(r"$\textsf{\small Predict stock closing price}$")
             #Calculate daily return
             mc_data2 = data1.copy(deep=True)
             mc_data2["Daily return"] = mc_data2["Close"].diff()/mc_data2["Close"]
@@ -260,6 +273,10 @@ def main():
 
             st.subheader(r"$\textsf{\footnotesize Prediction for next day}$")
             new_date = mc_data2["Date"][len(mc_data2)-1] + datetime.timedelta(days=1)
+            if new_date.strftime("%A") == "Saturday":
+                new_date = new_date + datetime.timedelta(days=2)
+            if new_date.strftime("%A") == "Sunday":
+                new_date = new_date + datetime.timedelta(days=1)
             new_price = predict_price(mc_data2["DR State"][len(mc_data2)-1], mc_data2["Close"][len(mc_data2)-1], 
                                                ['0', '1', '2', '3', '4', '5'], states, mc_data2["DR State"][len(mc_data2)-best_ws:].tolist())
             new_prediction = pd.DataFrame({"Date": new_date, "Prediction": new_price}, index=[0])
@@ -269,7 +286,9 @@ def main():
             arima_data = data1.copy(deep=True)
             arima_data2 = arima_data.set_index("Date")
 
-            st.subheader("Test for stationarity")
+            st.subheader("ARIMA model")
+
+            st.subheader(r"$\textsf{\footnotesize Test for stationarity}$")
             test_stationarity(arima_data2["Close"])
 
             #st.subheader("Trend and Seasonality")
@@ -302,7 +321,7 @@ def main():
             y_pred["Lower"] = confint[:, 0]
             y_pred["Upper"] = confint[:, 1]
 
-            st.subheader("Predict stock closing price with ARIMA")
+            
 
             st.subheader(r"$\textsf{\footnotesize Performance}$")
 
@@ -327,8 +346,14 @@ def main():
             num_days = st.slider("Choose number of days to predict", 1, 15, 5)
             arima_new_date=[]
             arima_new_prediction=[]
+            new_date = arima_data["Date"][len(arima_data)-1]
             for i in range(1, num_days+1):
-                arima_new_date.append(arima_data["Date"][len(arima_data)-1]+datetime.timedelta(days=i))
+                new_date = new_date + datetime.timedelta(days=1)
+                if new_date.strftime("%A") == "Saturday":
+                    new_date = new_date + datetime.timedelta(days=2)
+                if new_date.strftime("%A") == "Sunday":
+                    new_date = new_date + datetime.timedelta(days=1)
+                arima_new_date.append(new_date)
             predictions, confint = model_arima.predict(len(arima_test)+num_days, alpha = 0.05, return_conf_int=True)
             predictions = predictions.reset_index(drop=True)
             lower = confint[:, 0]
@@ -340,7 +365,127 @@ def main():
             pd.set_option('display.float_format', lambda x: '%.2f' % x)
             model_predictions=pd.DataFrame(zip(arima_new_date, arima_new_prediction, lower, upper), columns=["Date","Prediction", "Lower", "Upper"])
             st.dataframe(model_predictions, hide_index=True)
-       
+        
+        if model_choice == "Facebook Prophet":
+            data3 = data.copy(deep=True)
+            data3 = data3[["Date", "Close"]]
+            data3.columns = ['ds', 'y']
+            data3_train = data3.iloc[:int(data3.shape[0]*0.8)]
+            data3_test = data3.iloc[int(data3.shape[0]*0.8):]
+
+            prophet=Prophet(daily_seasonality=True)
+            prophet.fit(data3_train)
+
+            future_dates = prophet.make_future_dataframe(periods=365)
+            predictions= prophet.predict(future_dates)
+            pred=predictions[predictions['ds'].isin(data3_test['ds'])]
+
+            st.subheader("Facebook Prophet model")
+
+            st.subheader(r"$\textsf{\footnotesize Performance}$")
+
+            plot = plot_plotly(prophet, predictions)
+            st.plotly_chart(plot, use_container_width=True)
+
+            rmse = root_mean_squared_error(data3_test["y"], pred["yhat"])
+            mape = mean_absolute_percentage_error(data3_test["y"], pred["yhat"])
+            col1, col2 = st.columns([0.8, 0.2])
+            with col1:
+                plt.figure(figsize=(10,5))
+                plt.plot(pd.to_datetime(data3_train['ds']), data3_train['y'], label='Trainng')
+                plt.plot(pd.to_datetime(data3_test['ds']), data3_test['y'], color='blue', label='Test')
+                plt.plot(pd.to_datetime(data3_test['ds']), pred['yhat'], color = 'orange', label='Prediction')
+                plt.fill_between(pred["ds"], pred["yhat_lower"], pred["yhat_upper"], color='k', alpha=.10)
+                plt.legend()
+                st.pyplot(use_container_width=True)
+            with col2:
+                st.metric(":orange[Root Mean Squared Error]", f"{rmse:.2f}")
+                st.metric(":orange[Mean Absolute Percentage Error]", f'{mape*100:.2f}%')
+
+            st.subheader(r"$\textsf{\footnotesize Prediction for future}$")
+            num_days = st.slider("Choose number of days to predict", 1, 15, 5)
+            dates=[]
+            new_date = data3["ds"][len(data3)-1]
+
+            for i in range(1, num_days+1):
+                new_date = new_date + datetime.timedelta(days=1)
+                if new_date.strftime("%A") == "Saturday":
+                    new_date = new_date + datetime.timedelta(days=2)
+                if new_date.strftime("%A") == "Sunday":
+                    new_date = new_date + datetime.timedelta(days=1)
+                dates.append(new_date)
+            new_prediction = predictions[predictions['ds'].isin(dates)]
+            yhat = new_prediction['yhat']
+            lower = new_prediction['yhat_lower']
+            upper = new_prediction['yhat_upper']
+    
+            pd.set_option('display.float_format', lambda x: '%.2f' % x)
+            model_predictions=pd.DataFrame(zip(dates, yhat, lower, upper), columns=["Date","Prediction", "Lower", "Upper"])
+            st.dataframe(model_predictions, hide_index=True)
+
+        if model_choice == "Markov Regime-Switching":
+            st.subheader("Markov Regime-Switching model")
+            data4 = data1.copy(deep=True)
+            data4['Returns'] = np.log(data4['Close'] / data4['Close'].shift())
+            data4.dropna(inplace=True)
+            data4_train = data4.iloc[:int(data4.shape[0]*0.8)]
+            data4_test = data4.iloc[int(data4.shape[0]*0.8):]
+
+            train = data4_train['Returns']
+            test = data4_test["Returns"]
+            model = sm.tsa.MarkovRegression(train[1:], k_regimes=2, exog=train[:-1])
+            res = model.fit(search_reps=50)
+
+            fig, axes = plt.subplots(2, figsize=(12,4))
+            axes[0].plot(data4_train["Date"][1:], res.smoothed_marginal_probabilities[0])
+            axes[0].set(title="Probability of being in high regime of stock returns")
+            axes[1].plot(data4_train["Date"][1:], res.smoothed_marginal_probabilities[1])
+            axes[1].set(title="Probability of being in low regime of stock returns")
+            fig.tight_layout()
+            st.pyplot(use_container_width=True)
+
+            predictions = []
+
+            params = res.params
+            coefs = np.array([params[[2,4]], params[[3,5]]])
+            mat = np.array([[params[0], 1-params[0]], [params[1], 1-params[1]]])
+            mat_base = mat
+            probs = np.array(res.smoothed_marginal_probabilities.iloc[-1])
+            current_regime = np.argmax(probs)
+
+            for i in range(len(data4_test)):
+                new_probs = mat[current_regime]
+                values = np.dot(coefs, np.array([1, train[len(train)-1]]))
+                weighted_val = np.dot(values, new_probs)
+                mat = np.matmul(mat, mat_base)
+                predictions = np.append(predictions, weighted_val)
+                train = np.append(train, weighted_val)
+                
+            predicted_price = []
+            current_price = data4_train["Close"].iloc[-1]
+            for i in range(len(data4_test)):
+                current_price = np.exp(predictions[i]) * current_price
+                predicted_price = np.append(predicted_price, current_price)
+
+            rmse = root_mean_squared_error(data4_test["Close"], predicted_price)
+            mape = mean_absolute_percentage_error(data4_test["Close"], predicted_price)
+
+            st.subheader(r"$\textsf{\footnotesize Performance}$")
+
+            col1, col2 = st.columns([0.8, 0.2])
+            with col1:
+                plt.figure(figsize=(10,5))
+                plt.plot(data4_train["Date"], data4_train["Close"], label="Training")
+                plt.plot(data4_test["Date"], data4_test["Close"], color = 'blue', label="Test")
+                plt.plot(data4_test["Date"], predicted_price, color = 'orange', label="Prediction")
+                plt.xlabel('Date')
+                plt.ylabel('Close Price')
+                plt.legend()
+                st.pyplot(use_container_width=True)
+            with col2:
+                st.metric(":orange[Root Mean Squared Error]", f"{rmse:.2f}")
+                st.metric(":orange[Mean Absolute Percentage Error]", f'{mape*100:.2f}%')
+
 @st.cache_data
 def get_data(ticker, start, end):
     data = yf.download(ticker, start = start, end = end)
@@ -350,6 +495,13 @@ def get_data(ticker, start, end):
 
 def calculate_moving_average(data, window_size):
     return data.rolling(window=window_size).mean()
+
+def calculate_price_difference(stock_data):
+    latest_price = stock_data.iloc[-1]["Close"]
+    previous_year_price = stock_data.iloc[-252]["Close"] if len(stock_data) >= 252 else stock_data.iloc[0]["Close"]
+    price_difference = latest_price - previous_year_price
+    percentage_difference = (price_difference / previous_year_price) * 100
+    return price_difference, percentage_difference
 
 def cal_proportion(data, column, order):
     total = len(data[column])
