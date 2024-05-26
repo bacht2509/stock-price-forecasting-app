@@ -118,9 +118,7 @@ def main():
         
         
             st.subheader("Markov Chain model ")
-            st.subheader(r"$\textsf{\small Stock price properties}$")
-            st.markdown(f"Consider 3 states of daily stock closing price: ***Up, Flat and Down***. \
-                Using the data **from {mc_train.iloc[0,0].date()} to {mc_train.iloc[-1,0].date()}**, we form a Markov chain as follows: ")
+            st.subheader(r"$\textsf{\small Markov Chain of Stock Trends}$")
         
             plt.ioff()
             fig, ax = mc.plot_graph(trend_mc)
