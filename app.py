@@ -24,7 +24,7 @@ from prophet.plot import plot_plotly
 
 def main():
     #Page config and title
-    st.set_page_config(page_title="Stock price forecast", page_icon=":chart_with_upwards_trend:", layout="wide")
+    st.set_page_config(page_title="Stock Price Forecast", page_icon=":chart_with_upwards_trend:", layout="wide")
     st.title("Stock Price Forecasting App :desktop_computer:")
 
     #Sidebar
@@ -39,7 +39,7 @@ def main():
     group = st.sidebar.selectbox("Industry Group", group_list)
     ticker = st.sidebar.selectbox("Stock Ticker", ticker_list[group])
     model_list = ["Markov Chain", "ARIMA", "Facebook Prophet", "Markov Regime-Switching"]
-    model_choice = st.sidebar.selectbox("Model to forecast", model_list)
+    model_choice = st.sidebar.selectbox("Forecasting Model", model_list)
 
     start_date = date(2022, 1, 1)
     end_date = date.today()
