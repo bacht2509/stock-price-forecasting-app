@@ -29,10 +29,10 @@ def main():
 
     #Sidebar
     st.sidebar.header("Select :pencil2:")
-    group_list = ["Banking", "Securities", "Electronics", "Petroleum"]
+    group_list = ["Banking", "Securities", "Electronics", "Petroleum"
     ticker_list = {"Banking": ["BID.VN", "VCB.VN", "TCB.VN", "CTG.VN"],
                    "Securities": ["AGR.VN", "APG.VN", "BSI.VN"],
-                   "Electronics": ["BTP.VN", "CHP.VN", "DRL.VN"],
+                   "Electronics": ["BTP.VN", "CHP.VN", "DRL.VN", "CAV.VN"],
                    "Petroleum": ["ASP.VN", "CNG.VN"]}
     group = st.sidebar.selectbox("Industry Group", group_list)
     ticker = st.sidebar.selectbox("Stock Ticker", ticker_list[group])
