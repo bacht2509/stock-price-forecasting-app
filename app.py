@@ -261,7 +261,6 @@ def main():
             col1, col2 = st.columns([0.8, 0.2])
             with col1:
                 fig2 = go.Figure()
-                fig2.add_trace(go.Scatter(x=mc_train2["Date"], y=mc_train2['Close'], mode='lines', name='Training'))
                 fig2.add_trace(go.Scatter(x=mc_test2["Date"], y=mc_test2['Close'], mode='lines', line = {'color': 'blue'}, name='Test'))
                 fig2.add_trace(go.Scatter(x=mc_test2["Date"], y=mc_test2['Prediction'], mode='lines', line = {'color': '#fc5a03'}, name='Prediction'))
                 fig2.update_layout(xaxis_title="Date",yaxis_title="Close Price",legend=dict(x=0,y=1,traceorder="normal"),font=dict(size=12))
