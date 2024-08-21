@@ -123,9 +123,9 @@ def main():
             st.subheader(r"$\textsf{\small Markov Chain of Stock Trends}$")
         
             plt.ioff()
-            fig, ax = mc.plot_graph(trend_mc)
-            fig.set_size_inches(16, 9)
-            st.pyplot()
+            fig, ax = mc.plot_graph(trend_mc, dpi = 100)
+            fig.set_size_inches(10, 4)
+            st.pyplot(use_container_width = False)
 
         
             st.markdown("**Markov chain properties check**")
