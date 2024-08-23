@@ -262,7 +262,8 @@ def main():
             with col1:
                 fig2 = go.Figure()
                 fig2.add_trace(go.Scatter(x=mc_test2["Date"], y=mc_test2['Close'], mode='lines', line = {'color': 'blue'}, name='Test'))
-                fig2.add_trace(go.Scatter(x=mc_test2["Date"], y=mc_test2['Prediction'], mode='lines', line = {'color': '#fc5a03'}, name='Prediction'))
+                fig2.add_trace(go.Scatter(x=mc_train2["Date"], y=mc_train2['Close'], mode='lines', name='Train'))
+                fig2.add_trace(go.Scatter(x=mc_test2["Date"], y=mc_test2['Prediction'], mode='lines', line = {'color': 'orange'}, name='Prediction'))
                 fig2.update_layout(xaxis_title="Date",yaxis_title="Close Price",legend=dict(x=0,y=1,traceorder="normal"),font=dict(size=12))
                 st.plotly_chart(fig2, use_container_width=True)
             with col2:
@@ -329,7 +330,7 @@ def main():
             col1, col2 = st.columns([0.8, 0.2])
             with col1:
                 plt.figure(figsize=(10,5))
-                plt.plot(arima_train["Date"], arima_train["Close"], label="Training")
+                plt.plot(arima_train["Date"], arima_train["Close"], label="Train")
                 plt.plot(arima_test["Date"], arima_test["Close"], color = 'blue', label="Test")
                 plt.plot(y_pred["Date"], y_pred["Prediction"], color = 'orange', label="Prediction")
                 plt.fill_between(y_pred["Date"], y_pred["Lower"], y_pred["Upper"], color='k', alpha=.10)
@@ -391,7 +392,7 @@ def main():
             col1, col2 = st.columns([0.8, 0.2])
             with col1:
                 plt.figure(figsize=(10,5))
-                plt.plot(pd.to_datetime(data3_train['ds']), data3_train['y'], label='Trainng')
+                plt.plot(pd.to_datetime(data3_train['ds']), data3_train['y'], label='Train')
                 plt.plot(pd.to_datetime(data3_test['ds']), data3_test['y'], color='blue', label='Test')
                 plt.plot(pd.to_datetime(data3_test['ds']), pred['yhat'], color = 'orange', label='Prediction')
                 plt.fill_between(pred["ds"], pred["yhat_lower"], pred["yhat_upper"], color='k', alpha=.10)
@@ -590,7 +591,7 @@ def test_stationarity(timeseries):
     rolstd = timeseries.rolling(10).std()
     
     #Plot rolling statistics:
-    plt.figure(figsize=(16,9))
+    plt.figure(figsize=(10,5))
     orig = plt.plot(timeseries, color='blue',label='Original')
     mean = plt.plot(rolmean, color='red', label='Rolling Mean')
     std = plt.plot(rolstd, color='black', label = 'Rolling Std')
