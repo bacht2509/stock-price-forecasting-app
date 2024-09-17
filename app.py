@@ -38,7 +38,7 @@ def main():
                    "Steel": ["DTL.VN", "HMC.VN", "HPG.VN", "HSG.VN"]}
     group = st.sidebar.selectbox("Industry Group :hammer_and_wrench:", group_list)
     ticker = st.sidebar.selectbox("Stock Ticker :ticket:", ticker_list[group])
-    model_list = ["Markov Chain", "ARIMA", "Facebook Prophet", "Markov Regime-Switching"]
+    model_list = ["Markov Chain", "ARIMA", "Facebook Prophet"]
     model_choice = st.sidebar.selectbox("Forecasting Model :slot_machine:", model_list)
 
     start_date = date(2022, 1, 1)
