@@ -423,68 +423,68 @@ def main():
             model_predictions=pd.DataFrame(zip(dates, yhat, lower, upper), columns=["Date","Prediction", "Lower", "Upper"])
             st.dataframe(model_predictions, hide_index=True)
 
-        if model_choice == "Markov Regime-Switching":
-            st.subheader("Markov Regime-Switching model")
-            data4 = data1.copy(deep=True)
-            data4['Returns'] = np.log(data4['Close'] / data4['Close'].shift())
-            data4.dropna(inplace=True)
-            data4_train = data4.iloc[:int(data4.shape[0]*0.8)]
-            data4_test = data4.iloc[int(data4.shape[0]*0.8):]
+        # if model_choice == "Markov Regime-Switching":
+        #     st.subheader("Markov Regime-Switching model")
+        #     data4 = data1.copy(deep=True)
+        #     data4['Returns'] = np.log(data4['Close'] / data4['Close'].shift())
+        #     data4.dropna(inplace=True)
+        #     data4_train = data4.iloc[:int(data4.shape[0]*0.8)]
+        #     data4_test = data4.iloc[int(data4.shape[0]*0.8):]
 
-            train = data4_train['Returns']
-            test = data4_test["Returns"]
-            model = sm.tsa.MarkovRegression(train[1:], k_regimes=2, exog=train[:-1])
-            res = model.fit(search_reps=50)
+        #     train = data4_train['Returns']
+        #     test = data4_test["Returns"]
+        #     model = sm.tsa.MarkovRegression(train[1:], k_regimes=2, exog=train[:-1])
+        #     res = model.fit(search_reps=50)
 
-            fig, axes = plt.subplots(2, figsize=(12,4))
-            axes[0].plot(data4_train["Date"][1:], res.smoothed_marginal_probabilities[0])
-            axes[0].set(title="Probability of being in high regime of stock returns")
-            axes[1].plot(data4_train["Date"][1:], res.smoothed_marginal_probabilities[1])
-            axes[1].set(title="Probability of being in low regime of stock returns")
-            fig.tight_layout()
-            st.pyplot(use_container_width=True)
+        #     fig, axes = plt.subplots(2, figsize=(12,4))
+        #     axes[0].plot(data4_train["Date"][1:], res.smoothed_marginal_probabilities[0])
+        #     axes[0].set(title="Probability of being in high regime of stock returns")
+        #     axes[1].plot(data4_train["Date"][1:], res.smoothed_marginal_probabilities[1])
+        #     axes[1].set(title="Probability of being in low regime of stock returns")
+        #     fig.tight_layout()
+        #     st.pyplot(use_container_width=True)
 
-            predictions = []
+        #     predictions = []
 
-            params = res.params
-            coefs = np.array([params[[2,4]], params[[3,5]]])
-            mat = np.array([[params[0], 1-params[0]], [params[1], 1-params[1]]])
-            mat_base = mat
-            probs = np.array(res.smoothed_marginal_probabilities.iloc[-1])
-            current_regime = np.argmax(probs)
+        #     params = res.params
+        #     coefs = np.array([params[[2,4]], params[[3,5]]])
+        #     mat = np.array([[params[0], 1-params[0]], [params[1], 1-params[1]]])
+        #     mat_base = mat
+        #     probs = np.array(res.smoothed_marginal_probabilities.iloc[-1])
+        #     current_regime = np.argmax(probs)
 
-            for i in range(len(data4_test)):
-                new_probs = mat[current_regime]
-                values = np.dot(coefs, np.array([1, train[len(train)-1]]))
-                weighted_val = np.dot(values, new_probs)
-                mat = np.matmul(mat, mat_base)
-                predictions = np.append(predictions, weighted_val)
-                train = np.append(train, weighted_val)
+        #     for i in range(len(data4_test)):
+        #         new_probs = mat[current_regime]
+        #         values = np.dot(coefs, np.array([1, train[len(train)-1]]))
+        #         weighted_val = np.dot(values, new_probs)
+        #         mat = np.matmul(mat, mat_base)
+        #         predictions = np.append(predictions, weighted_val)
+        #         train = np.append(train, weighted_val)
                 
-            predicted_price = []
-            current_price = data4_train["Close"].iloc[-1]
-            for i in range(len(data4_test)):
-                current_price = np.exp(predictions[i]) * current_price
-                predicted_price = np.append(predicted_price, current_price)
+        #     predicted_price = []
+        #     current_price = data4_train["Close"].iloc[-1]
+        #     for i in range(len(data4_test)):
+        #         current_price = np.exp(predictions[i]) * current_price
+        #         predicted_price = np.append(predicted_price, current_price)
 
-            rmse = root_mean_squared_error(data4_test["Close"], predicted_price)
-            mape = mean_absolute_percentage_error(data4_test["Close"], predicted_price)
+        #     rmse = root_mean_squared_error(data4_test["Close"], predicted_price)
+        #     mape = mean_absolute_percentage_error(data4_test["Close"], predicted_price)
 
-            st.subheader(r"$\textsf{\footnotesize Performance}$")
+        #     st.subheader(r"$\textsf{\footnotesize Performance}$")
 
-            col1, col2 = st.columns([0.8, 0.2])
-            with col1:
-                plt.figure(figsize=(10,5))
-                plt.plot(data4_train["Date"], data4_train["Close"], label="Training")
-                plt.plot(data4_test["Date"], data4_test["Close"], color = 'blue', label="Test")
-                plt.plot(data4_test["Date"], predicted_price, color = 'orange', label="Prediction")
-                plt.xlabel('Date')
-                plt.ylabel('Close Price')
-                plt.legend()
-                st.pyplot(use_container_width=True)
-            with col2:
-                st.metric(":orange[Root Mean Squared Error]", f"{rmse:.2f}")
-                st.metric(":orange[Mean Absolute Percentage Error]", f'{mape*100:.2f}%')
+        #     col1, col2 = st.columns([0.8, 0.2])
+        #     with col1:
+        #         plt.figure(figsize=(10,5))
+        #         plt.plot(data4_train["Date"], data4_train["Close"], label="Training")
+        #         plt.plot(data4_test["Date"], data4_test["Close"], color = 'blue', label="Test")
+        #         plt.plot(data4_test["Date"], predicted_price, color = 'orange', label="Prediction")
+        #         plt.xlabel('Date')
+        #         plt.ylabel('Close Price')
+        #         plt.legend()
+        #         st.pyplot(use_container_width=True)
+        #     with col2:
+        #         st.metric(":orange[Root Mean Squared Error]", f"{rmse:.2f}")
+        #         st.metric(":orange[Mean Absolute Percentage Error]", f'{mape*100:.2f}%')
 
 @st.cache_data
 def get_data(ticker, start, end):
