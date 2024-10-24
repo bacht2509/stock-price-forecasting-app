@@ -60,11 +60,11 @@ def main():
         with col1:
             st.metric("Close Price", f"{latest_close_price:.2f}")
         with col2:
-            st.metric("Price Difference (YoY)", "{:.2f}".format(price_difference), "{:+.2f}%".format(percentage_difference))
+            st.metric("Price Difference (YoY)", price_difference, percentage_difference)
         with col3:
-            st.metric("52-Week High", f"{max_52_week_high:.2f}")
+            st.metric("52-Week High", max_52_week_high)
         with col4:
-            st.metric("52-Week Low", f"{min_52_week_low:.2f}")
+            st.metric("52-Week Low", min_52_week_low)
 
         st.dataframe(data[::-1], hide_index=True, use_container_width=True)
         
