@@ -58,7 +58,7 @@ def main():
         min_52_week_low = data["Low"].tail(252).min() if len(data) >= 252 else data["Low"].min()
         col1, col2, col3, col4 = st.columns(4)
         with col1:
-            st.metric("Close Price", f"{latest_close_price:.2f}")
+            st.metric("Close Price", latest_close_price)
         with col2:
             st.metric("Price Difference (YoY)", price_difference, percentage_difference)
         with col3:
