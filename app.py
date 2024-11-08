@@ -125,7 +125,7 @@ def main():
             plt.ioff()
             fig, ax = mc.plot_graph(trend_mc, dpi = 100)
             fig.set_size_inches(10, 4)
-            st.pyplot(use_container_width = False)
+            st.pyplot(use_container_width = True)
 
         
             st.markdown("**Markov chain properties check**")
@@ -262,7 +262,7 @@ def main():
             with col1:
                 fig2 = go.Figure()
                 fig2.add_trace(go.Scatter(x=mc_test2["Date"], y=mc_test2['Close'], mode='lines', line = {'color': 'blue'}, name='Test'))
-                fig2.add_trace(go.Scatter(x=mc_train2["Date"], y=mc_train2['Close'], mode='lines', name='Train'))
+                # fig2.add_trace(go.Scatter(x=mc_train2["Date"], y=mc_train2['Close'], mode='lines', name='Train'))
                 fig2.add_trace(go.Scatter(x=mc_test2["Date"], y=mc_test2['Prediction'], mode='lines', line = {'color': 'orange'}, name='Prediction'))
                 fig2.update_layout(xaxis_title="Date",yaxis_title="Close Price",legend=dict(x=0,y=1,traceorder="normal"),font=dict(size=12))
                 st.plotly_chart(fig2, use_container_width=True)
