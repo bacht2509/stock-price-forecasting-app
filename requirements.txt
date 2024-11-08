@@ -1,0 +1,17 @@
+streamlit
+numpy
+pandas
+yfinance
+matplotlib
+seaborn
+plotly
+datetime
+pydtmc
+sklearn
+collections
+random
+statsmodels
+pmdarima
+pydot
+graphviz
+prophet
