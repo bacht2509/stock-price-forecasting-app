@@ -68,6 +68,7 @@ def main():
 
         print(data[data.index.duplicated()])
         print(pd. __version__)
+        print(st.__version__)
 
         st.dataframe(data[::-1], hide_index=True, use_container_width=True)
         
