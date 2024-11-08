@@ -9,7 +9,6 @@ datetime
 pydtmc
 scikit-learn
 collection
-random
 statsmodels
 pmdarima
 pydot
