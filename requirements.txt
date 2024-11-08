@@ -1,6 +1,6 @@
 streamlit
 numpy==1.26.4
-pandas
+pandas==2.2.2
 yfinance
 matplotlib
 seaborn
