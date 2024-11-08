@@ -7,7 +7,7 @@ seaborn
 plotly
 datetime
 pydtmc
-sklearn
+scikit-learn
 collections
 random
 statsmodels
