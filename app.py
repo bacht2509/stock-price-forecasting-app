@@ -66,6 +66,8 @@ def main():
         with col4:
             st.metric("52-Week Low", "%.2f" %min_52_week_low)
 
+        print(data[data.index.duplicated()])
+
         st.dataframe(data[::-1], hide_index=True, use_container_width=True)
         
 
